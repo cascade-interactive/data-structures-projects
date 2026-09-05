@@ -1,3 +1,17 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100/
+.Trashes/
+.fseventsd/
+.TemporaryItems/
+
+# JetBrains IDE settings (CLion, IntelliJ IDEA)
+.idea/
+*.iml
+
 # Prerequisites
 *.d
 
@@ -16,6 +30,7 @@
 
 # Debugger Files
 *.pdb
+*.dSYM/
 
 # Compiled Dynamic libraries
 *.so
@@ -38,11 +53,13 @@
 *.exe
 *.out
 *.app
+a.out
 
 # Build directories
 build/
 Build/
 build-*/
+cmake-build-*/
 
 # CMake generated files
 CMakeFiles/
@@ -51,6 +68,7 @@ cmake_install.cmake
 Makefile
 install_manifest.txt
 compile_commands.json
+CMakeUserPresets.json
 
 # Temporary files
 *.tmp
@@ -63,6 +81,11 @@ vcpkg_installed/
 
 # debug information files
 *.dwo
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
 
 # test output & cache
 Testing/
