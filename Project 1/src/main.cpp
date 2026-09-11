@@ -1,98 +1,101 @@
 #include <iostream>
 #include <string>
+
 #include "hat_helpers.hpp"
+#include "terminal_ui.hpp"
 
 using namespace std;
 
+namespace {
+
+void show_dashboard(size_t hat_count) {
+    TerminalUi::title("DASHBOARD", "A quiet place for a well-organized hat collection.");
+    TerminalUi::row("Collection status: " + to_string(hat_count)
+        + (hat_count == 1 ? " hat saved" : " hats saved"));
+    TerminalUi::border();
+
+    TerminalUi::section("COMMAND PALETTE");
+    TerminalUi::menu_item(1, "ADD HATS", "Add one or more hats");
+    TerminalUi::menu_item(2, "VIEW COLLECTION", "See every saved hat");
+    TerminalUi::menu_item(3, "SEARCH", "Find a hat by its details");
+    TerminalUi::menu_item(4, "REMOVE", "Remove one matching hat");
+    TerminalUi::menu_item(5, "BROWSE", "Move through hats one at a time");
+    TerminalUi::menu_item(6, "EXIT", "Close Hat Vault");
+    TerminalUi::section("TIP");
+    cout << TerminalUi::dim()
+         << "  Every screen is keyboard-driven. Enter the number in brackets to continue."
+         << TerminalUi::reset() << '\n';
+}
+
+void remove_hat(CircularList<Hat>& hat_collection) {
+    TerminalUi::title("REMOVE HAT", "Remove a hat by its color, brand, and coolness level.");
+    TerminalUi::section("HAT DETAILS");
+
+    string color;
+    TerminalUi::prompt("Color: ");
+    if (!getline(cin >> ws, color)) return;
+
+    string brand;
+    TerminalUi::prompt("Brand: ");
+    if (!getline(cin >> ws, brand)) return;
+
+    int coolness_level;
+    if (!read_integer("Coolness level [0-10]: ", coolness_level)) return;
+
+    if (hat_collection.remove(Hat(color, brand, coolness_level))) {
+        TerminalUi::status("Hat removed from the collection.");
+    } else {
+        TerminalUi::warning("No hat matched those details. Nothing was removed.");
+    }
+}
+
+} // namespace
+
 int main() {
-    // hat collection
     CircularList<Hat> hat_collection;
-    // hat carousel
     HatCarousel carousel(hat_collection);
-
     int next_id = 1;
-    int choice = 0;
+    bool running = true;
 
-    cout << "Hat Collection Manager" << endl;
-    cout << "======================" << endl;
+    while (running) {
+        show_dashboard(hat_collection.count());
 
-    do {
-        cout << "\nMain Menu\n"
-            << "---------\n"
-            << "1. Add hats\n"
-            << "2. Display all hats\n"
-            << "3. Search hats\n"
-            << "4. Remove a hat\n"
-            << "5. Browse hats\n"
-            << "6. Exit\n";
-
-        if (!read_integer("Select an option: ", choice)) {
-			break;
+        int choice;
+        if (!read_integer("Select a command [1-6]: ", choice)) {
+            break;
         }
+
         switch (choice) {
-        case 1:
-            add_hats(hat_collection, next_id);
-            break;
-
-        case 2:
-            cout << "\nHat Collection\n";
-            cout << "--------------" << endl;
-            hat_collection.display();
-            break;
-
-        case 3:
-            prompt_hat_search(hat_collection);
-            break;
-
-        case 4: {
-            cout << "\nRemove a Hat\n";
-            cout << "------------\n";
-            cout << "Enter the hat details.\n";
-            cout << "Color: ";
-            string color;
-            if (!getline(cin >> ws, color)) {
-                return 0;
-            }
-
-            cout << "Brand: ";
-            string brand;
-            if (!getline(cin >> ws, brand)) {
-                return 0;
-            }
-
-			int coolness_level;
-			if (!read_integer("Coolness level: ", coolness_level)) {
-                return 0;
-            }
-
-			Hat target_hat(color, brand, coolness_level);
-			bool did_we_find_hat = hat_collection.remove(target_hat);
-            if (!did_we_find_hat) {
-                cout << "------------\nHat not found under specified parameters.\n------------\n";
+            case 1:
+                add_hats(hat_collection, next_id);
+                if (!TerminalUi::pause()) running = false;
                 break;
-            }
-            cout << "------------\nHat removal completed.\n------------\n";
-            break;
-            }
-
-        case 5:
-            // Clear the terminal
-            std::cout << "\033[2J\033[H\n\n\n" << std::flush;
-    
-            // Run the carousel
-            carousel.run(hat_collection.count());
-            break;
-
-
-        case 6:
-            cout << "Exiting Hat Collection Manager.\n";
-            break;
-            
-        default:
-            cout << "Invalid selection. Please choose one of the listed options.\n";
-            break;
+            case 2:
+                display_hat_collection(hat_collection);
+                if (!TerminalUi::pause()) running = false;
+                break;
+            case 3:
+                prompt_hat_search(hat_collection);
+                if (!TerminalUi::pause()) running = false;
+                break;
+            case 4:
+                remove_hat(hat_collection);
+                if (!TerminalUi::pause()) running = false;
+                break;
+            case 5:
+                carousel.run(hat_collection.count());
+                break;
+            case 6:
+                running = false;
+                break;
+            default:
+                TerminalUi::error("Choose a command from 1 through 6.");
+                if (!TerminalUi::pause()) running = false;
+                break;
         }
-    } while (choice != 6);
+    }
 
+    TerminalUi::title("SESSION CLOSED", "Your collection is kept in memory until the program ends.");
+    TerminalUi::status("Thanks for using Hat Vault.");
     return 0;
 }

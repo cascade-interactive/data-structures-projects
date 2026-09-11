@@ -147,6 +147,19 @@ public:
         }
         return current->value;
     }
+
+    template <typename Action>
+    void for_each(Action action) const {
+        if (head == nullptr) {
+            return;
+        }
+
+        const ListNode* current = head;
+        do {
+            action(current->value);
+            current = current->next;
+        } while (current != head);
+    }
     
 
     template <typename Predicate>

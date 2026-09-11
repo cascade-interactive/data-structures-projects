@@ -1,160 +1,163 @@
 #include <iostream>
+#include <limits>
 #include <string>
 
 #include "hat_helpers.hpp"
+#include "terminal_ui.hpp"
 
 using namespace std;
 
-// Helper function to double check user entered an integer and not something else
+namespace {
+
+bool read_text(const string& label, string& value) {
+    TerminalUi::prompt(label);
+    return static_cast<bool>(getline(cin >> ws, value));
+}
+
+void display_hat_card(const Hat& hat) {
+    TerminalUi::card(
+        "HAT #" + to_string(hat.get_id()),
+        "Color     " + hat.get_color(),
+        "Brand     " + hat.get_brand(),
+        "Coolness  " + to_string(hat.get_coolness_level()) + " / 10");
+}
+
+template <typename Predicate>
+size_t display_matches(const CircularList<Hat>& collection, Predicate is_match) {
+    size_t match_count = 0;
+    collection.for_each([&](const Hat& hat) {
+        if (is_match(hat)) {
+            display_hat_card(hat);
+            ++match_count;
+        }
+    });
+    return match_count;
+}
+
+} // namespace
+
 bool read_integer(const string& prompt, int& value) {
-
-    // Keep repeating until return exits the function
     while (true) {
-
-        // Print the question
-        cout << prompt;
+        TerminalUi::prompt(prompt);
 
         if (cin >> value) {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return true;
         }
-        
         if (cin.eof()) {
             return false;
         }
-        
-        /* Input has failed */
-        cout << "Invalid input. Please enter a whole number.\n";   
-        /* Reset cin's error state to read again */
-        cin.clear();    
 
-        // Discard rest of the line
+        cin.clear();
         string discarded;
         getline(cin, discarded);
+        TerminalUi::error("Please enter a whole number.");
     }
 }
 
+void display_hat_collection(const CircularList<Hat>& hat_collection) {
+    TerminalUi::title("COLLECTION", "Your saved hats, displayed as cards.");
+    TerminalUi::section("COLLECTION  " + to_string(hat_collection.count()) + " HAT(S)");
+
+    if (hat_collection.count() == 0) {
+        TerminalUi::warning("Your collection is empty. Add a hat to get started.");
+        return;
+    }
+
+    hat_collection.for_each([](const Hat& hat) { display_hat_card(hat); });
+}
+
 void prompt_hat_search(const CircularList<Hat>& hat_collection) {
+    TerminalUi::title("SEARCH", "Find hats by an exact detail.");
+    TerminalUi::section("SEARCH FIELD");
+    TerminalUi::menu_item(1, "ID", "Find one specific hat");
+    TerminalUi::menu_item(2, "COLOR", "Match a color exactly");
+    TerminalUi::menu_item(3, "BRAND", "Match a brand exactly");
+    TerminalUi::menu_item(4, "COOLNESS", "Match a rating exactly");
 
     int field_choice;
-
     while (true) {
-           cout << "\nSearch Hats\n"
-               << "-----------\n"
-               << "Search by:\n"
-             << "1. ID\n"
-             << "2. Color\n"
-             << "3. Brand\n"
-             << "4. Coolness level\n";
-
-        if (!read_integer("Select a search field (1-4): ", field_choice)) {
+        if (!read_integer("Choose a field [1-4]: ", field_choice)) {
             return;
         }
-
         if (field_choice >= 1 && field_choice <= 4) {
             break;
         }
-
-        cout << "Invalid selection. Please choose an option from 1 through 4.\n";
+        TerminalUi::error("Choose a number from 1 through 4.");
     }
 
     size_t match_count = 0;
-
     switch (field_choice) {
         case 1: {
             int id;
-            if (!read_integer("Enter the hat ID: ", id)) {
-                return;
-            }
-                cout << "\nSearch Results\n";
-                cout << "--------------\n";
-            match_count = hat_collection.search(
+            if (!read_integer("Hat ID: ", id)) return;
+            match_count = display_matches(hat_collection,
                 [id](const Hat& hat) { return hat.get_id() == id; });
-                cout << "--------------\n" << endl;
             break;
         }
         case 2: {
             string color;
-                cout << "Enter a hat color: ";
-            getline(cin >> ws, color);
-                cout << "\nSearch Results\n";
-                cout << "--------------\n";
-            match_count = hat_collection.search(
+            if (!read_text("Color: ", color)) return;
+            match_count = display_matches(hat_collection,
                 [&color](const Hat& hat) { return hat.get_color() == color; });
-                cout << "--------------\n" << endl;
             break;
         }
         case 3: {
             string brand;
-                cout << "Enter a hat brand: ";
-            getline(cin >> ws, brand);
-                cout << "\nSearch Results\n";
-                cout << "--------------\n";
-            match_count = hat_collection.search(
+            if (!read_text("Brand: ", brand)) return;
+            match_count = display_matches(hat_collection,
                 [&brand](const Hat& hat) { return hat.get_brand() == brand; });
-                cout << "--------------\n" << endl;
             break;
         }
         case 4: {
             int coolness_level;
-            if (!read_integer("Enter the coolness level: ", coolness_level)) {
-                return;
-            }
-                cout << "\nSearch Results\n";
-                cout << "--------------\n";
-            match_count = hat_collection.search(
-                [coolness_level](const Hat& hat) {
-                    return hat.get_coolness_level() == coolness_level;
-                });
-                cout << "--------------\n" << endl;
+            if (!read_integer("Coolness level: ", coolness_level)) return;
+            match_count = display_matches(hat_collection, [coolness_level](const Hat& hat) {
+                return hat.get_coolness_level() == coolness_level;
+            });
             break;
         }
     }
 
+    TerminalUi::section("RESULT");
     if (match_count == 0) {
-            cout << "No hats matched your search.\n" << endl;
+        TerminalUi::warning("No hats matched that search.");
     } else {
-            cout << "Found " << match_count
-                 << (match_count == 1 ? " matching hat." : " matching hats.") << endl;
+        TerminalUi::status("Found " + to_string(match_count)
+            + (match_count == 1 ? " matching hat." : " matching hats."));
     }
 }
 
-// Custom function for adding hats instead of having it be done inside of main()
 void add_hats(CircularList<Hat>& hat_collection, int& next_id) {
+    TerminalUi::title("ADD HATS", "Add one or more hats to the vault.");
 
     int count = 0;
-
-    if (!read_integer("How many hats would you like to add? ", count) || count <= 0) {
-        cout << "No hats were added.\n";
+    if (!read_integer("How many hats would you like to add? ", count)) {
+        return;
+    }
+    if (count <= 0) {
+        TerminalUi::warning("Nothing was added.");
         return;
     }
 
-    for (int i = 0; i < count; i++) {
-        cout << "\nAdding Hat " << next_id << "\n";
+    for (int i = 0; i < count; ++i) {
+        TerminalUi::section("HAT " + to_string(i + 1) + " OF " + to_string(count));
 
-        cout << "Color: ";
         string color;
-        if (!getline(cin >> ws, color)) {
-            return;
-        }
+        if (!read_text("Color: ", color)) return;
 
-        cout << "Brand: ";
         string brand;
-        if (!getline(cin >> ws, brand)) {
-            return;
-        }
+        if (!read_text("Brand: ", brand)) return;
 
         int coolness_level;
-        if (!read_integer("Coolness level: ", coolness_level)) {
-            return;
-        }
+        if (!read_integer("Coolness level [0-10]: ", coolness_level)) return;
 
-        Hat new_hat(color, brand, coolness_level, next_id++);
-        hat_collection.insert(new_hat);
+        hat_collection.insert(Hat(color, brand, coolness_level, next_id++));
     }
-    cout << "\nAdded " << count << (count == 1 ? " hat." : " hats.") << endl;
+
+    TerminalUi::status("Added " + to_string(count) + (count == 1 ? " hat." : " hats."));
 }
 
-// The functions for the hat carousel class
 HatCarousel::HatCarousel(CircularList<Hat>& collection)
     : hat_collection(collection), index(0) {
 }
@@ -162,50 +165,45 @@ HatCarousel::HatCarousel(CircularList<Hat>& collection)
 void HatCarousel::run(size_t count) {
     index = 0;
     if (hat_collection.count() == 0) {
-        cout << "There are no hats to display.\n";
+        TerminalUi::title("BROWSE", "Move through your collection one hat at a time.");
+        TerminalUi::warning("There are no hats to browse yet.");
+        TerminalUi::pause();
         return;
     }
-    cout << "Hat Carousel" << endl;
-    cout << "------------" << endl;
-    cout << "Viewing hat 1 of " << count << ":" << endl;
-    display_current();
-    cout << "\nOptions:" << endl;
-    cout << "1. Previous hat" << endl;
-    cout << "2. Next hat" << endl;
-    cout << "3. Return to main menu" << endl;
-    
-    int choice;
-    do {
-    if (!read_integer("\nSelect an option (1-3): ", choice)) {
-    break; }
-    switch(choice) {
-        case 1: 
-            previous();
-            break;
-        case 2: 
-            next();
-            break;
-        case 3:
-            cout << "Returning to the main menu." << endl;
-            break;
 
-        default:
-            cout << "Invalid selection. Please choose an option from 1 through 3.\n";
-            break;
+    while (true) {
+        TerminalUi::title("BROWSE", "Use the controls below to move through your collection.");
+        TerminalUi::section("HAT " + to_string(index + 1) + " OF " + to_string(count));
+        display_current();
+        TerminalUi::section("NAVIGATION");
+        TerminalUi::menu_item(1, "PREVIOUS", "Move left");
+        TerminalUi::menu_item(2, "NEXT", "Move right");
+        TerminalUi::menu_item(3, "RETURN", "Back to dashboard");
+
+        int choice;
+        if (!read_integer("Choose an action [1-3]: ", choice) || choice == 3) {
+            return;
+        }
+        if (choice == 1) {
+            previous();
+        } else if (choice == 2) {
+            next();
+        } else {
+            TerminalUi::error("Choose a number from 1 through 3.");
+            TerminalUi::pause();
+        }
     }
-    } while (choice != 3);
 }
 
 void HatCarousel::next() {
-    index = (index + 1) % hat_collection.count();
-    display_current();
+    index = (index + 1) % static_cast<int>(hat_collection.count());
 }
 
 void HatCarousel::previous() {
-    index = (index + hat_collection.count() - 1) % hat_collection.count();
-    display_current();
+    index = (index + static_cast<int>(hat_collection.count()) - 1)
+        % static_cast<int>(hat_collection.count());
 }
 
 void HatCarousel::display_current() {
-    cout << hat_collection.get(index) << endl;
+    display_hat_card(hat_collection.get(index));
 }
