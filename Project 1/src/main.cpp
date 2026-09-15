@@ -15,7 +15,7 @@ int main() {
 
     cout << "Hat Collection Manager" << endl;
     cout << "======================" << endl;
-
+	// Loop for allowing the user to add, remove, search, and display hats in the collection
     do {
         cout << "\nMain Menu\n"
             << "---------\n"
@@ -53,12 +53,14 @@ int main() {
             if (!getline(cin >> ws, color)) {
                 return 0;
             }
+            capitalize(color);
 
             cout << "Brand: ";
             string brand;
             if (!getline(cin >> ws, brand)) {
                 return 0;
             }
+            capitalize(brand);
 
 			int coolness_level;
 			if (!read_integer("Coolness level: ", coolness_level)) {
@@ -66,8 +68,9 @@ int main() {
             }
 
 			Hat target_hat(color, brand, coolness_level);
-			bool did_we_find_hat = hat_collection.remove(target_hat);
-            if (!did_we_find_hat) {
+            // Make use of bool to return true or false if the hat was found and removed
+			bool find_hat = hat_collection.remove(target_hat);
+            if (!find_hat) {
                 cout << "------------\nHat not found under specified parameters.\n------------\n";
                 break;
             }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cctype>
 
 #include "hat_helpers.hpp"
 
@@ -33,6 +34,7 @@ bool read_integer(const string& prompt, int& value) {
     }
 }
 
+// Function for searching for hats in the collection by prompting the user for a search field and then asking for the value to search for. It will then call the search function on the hat collection and display the results.
 void prompt_hat_search(const CircularList<Hat>& hat_collection) {
 
     int field_choice;
@@ -76,6 +78,7 @@ void prompt_hat_search(const CircularList<Hat>& hat_collection) {
             string color;
                 cout << "Enter a hat color: ";
             getline(cin >> ws, color);
+			capitalize(color);
                 cout << "\nSearch Results\n";
                 cout << "--------------\n";
             match_count = hat_collection.search(
@@ -87,6 +90,7 @@ void prompt_hat_search(const CircularList<Hat>& hat_collection) {
             string brand;
                 cout << "Enter a hat brand: ";
             getline(cin >> ws, brand);
+			capitalize(brand);
                 cout << "\nSearch Results\n";
                 cout << "--------------\n";
             match_count = hat_collection.search(
@@ -118,7 +122,7 @@ void prompt_hat_search(const CircularList<Hat>& hat_collection) {
     }
 }
 
-// Custom function for adding hats instead of having it be done inside of main()
+// Function for adding hats to the collection by asking the user for the amount of hats and then prompting them for the color, brand, and coolness for each. It will then insert the hat into the collection and increment the next_id for the next hat to be added.
 void add_hats(CircularList<Hat>& hat_collection, int& next_id) {
 
     int count = 0;
@@ -136,12 +140,14 @@ void add_hats(CircularList<Hat>& hat_collection, int& next_id) {
         if (!getline(cin >> ws, color)) {
             return;
         }
+        capitalize(color);
 
         cout << "Brand: ";
         string brand;
         if (!getline(cin >> ws, brand)) {
             return;
         }
+        capitalize(brand);
 
         int coolness_level;
         if (!read_integer("Coolness level: ", coolness_level)) {
@@ -154,11 +160,25 @@ void add_hats(CircularList<Hat>& hat_collection, int& next_id) {
     cout << "\nAdded " << count << (count == 1 ? " hat." : " hats.") << endl;
 }
 
+// Function that will capitalize the first letter of a string and make the rest lowercase mainly used for formatting for the color and brand
+void capitalize(string& str) {
+	if (str.empty()) {
+		return;
+	}
+    // Type cast the char to unsigned to avoid any unwanted behavior
+    str[0] = toupper(static_cast<unsigned char>(str[0]));
+
+    for (size_t i = 1; i < str.length(); i++) {
+        str[i] = tolower(static_cast<unsigned char>(str[i]));
+    }
+}
+
 // The functions for the hat carousel class
 HatCarousel::HatCarousel(CircularList<Hat>& collection)
     : hat_collection(collection), index(0) {
 }
 
+// A carousel for the hats that allows the user to view the hats in the collection and move through the linked list with the next and previous options. It will display the current hat and the total number of hats in the collection.
 void HatCarousel::run(size_t count) {
     index = 0;
     if (hat_collection.count() == 0) {
