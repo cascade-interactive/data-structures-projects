@@ -7,14 +7,14 @@ using namespace std;
 
 class Hat {
 
-private:
+  private:
     // Member variables
     int m_id;
     string m_color;
     string m_brand;
     int m_coolness_level;
 
-public:
+  public:
     // Hat Constructor
     Hat(string Color, string Brand, int Coolness_level, int id_num = 0);
 
@@ -27,7 +27,7 @@ public:
     string get_brand() const;
     int get_coolness_level() const;
 
-    bool operator==(const Hat& other) const;
+    bool operator==(const Hat &other) const;
 
-    friend ostream& operator<<(ostream& output, const Hat& hat);
+    friend ostream &operator<<(ostream &output, const Hat &hat);
 };
