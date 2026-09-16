@@ -22,6 +22,7 @@ template <typename T> class CircularList {
     ListNode *head = nullptr;
 
   public:
+    // constructor, creates an empty circular list
     CircularList() = default;
 
     // destructor, calls delete on each node in the list
@@ -74,6 +75,7 @@ template <typename T> class CircularList {
         new_node->next = head;
     }
 
+    // remove the first hat matching the provided hat
     bool remove(const T &hat) {
         if (head == nullptr) {
             return false;
@@ -111,6 +113,7 @@ template <typename T> class CircularList {
         return false;
     }
 
+    // display each hat in the list
     void display() const {
         // empty list edge-case
         if (head == nullptr) {
@@ -142,6 +145,7 @@ template <typename T> class CircularList {
         return item_count;
     }
 
+    // get the hat stored at the given index
     T &get(int index) {
         ListNode *current = head;
         for (int i = 0; i < index; i++) {
@@ -150,6 +154,7 @@ template <typename T> class CircularList {
         return current->value;
     }
 
+    // search for and display each hat matching the provided condition
     template <typename Predicate> size_t search(Predicate is_match) const {
         if (head == nullptr) {
             return 0;

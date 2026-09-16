@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// Main function for running the hat collection manager
 int main() {
     // hat collection
     CircularList<Hat> hat_collection;
