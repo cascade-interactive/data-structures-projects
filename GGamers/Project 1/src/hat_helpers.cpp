@@ -183,6 +183,7 @@ void capitalize(string &str) {
 }
 
 // The functions for the hat carousel class
+// Constructor for starting the hat carousel at the first hat
 HatCarousel::HatCarousel(CircularList<Hat> &collection)
     : hat_collection(collection), index(0) {}
 
@@ -229,16 +230,19 @@ void HatCarousel::run(size_t count) {
     } while (choice != 3);
 }
 
+// Move to the next hat in the collection
 void HatCarousel::next() {
     index = (index + 1) % hat_collection.count();
     display_current();
 }
 
+// Move to the previous hat in the collection
 void HatCarousel::previous() {
     index = (index + hat_collection.count() - 1) % hat_collection.count();
     display_current();
 }
 
+// Display the hat at the current carousel index
 void HatCarousel::display_current() {
     cout << hat_collection.get(index) << endl;
 }
