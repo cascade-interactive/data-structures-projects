@@ -3,23 +3,25 @@
 #include <cstddef>
 #include <iostream>
 
-template <typename T>
-class CircularList
-{
-private:
+using namespace std;
+
+template <typename T> class CircularList {
+  private:
     struct ListNode {
         T value;
-        ListNode* next;
+        ListNode *next;
 
-        /* 
-        Initialize value and next before entering the body and reject automatic conversion
+        /*
+        Initialize value and next before entering the body and reject automatic
+        conversion
         */
-        explicit ListNode(const T& initial_value) : value(initial_value), next(nullptr) {}
+        explicit ListNode(const T &initial_value)
+            : value(initial_value), next(nullptr) {}
     };
 
-    ListNode* head = nullptr;
+    ListNode *head = nullptr;
 
-public:
+  public:
     CircularList() = default;
 
     // destructor, calls delete on each node in the list
@@ -28,9 +30,9 @@ public:
             return;
         }
 
-        ListNode* current = head->next;
+        ListNode *current = head->next;
         while (current != head) {
-            ListNode* next_node = current->next;
+            ListNode *next_node = current->next;
             delete current;
             current = next_node;
         }
@@ -45,14 +47,13 @@ public:
     ...<Hat> c;
              c = a; rejected by second declaration
     */
-    CircularList(const CircularList&) = delete;
-    CircularList& operator=(const CircularList&) = delete;
-
+    CircularList(const CircularList &) = delete;
+    CircularList &operator=(const CircularList &) = delete;
 
     // insert address of typedef T hat
-    void insert(const T& hat) {
+    void insert(const T &hat) {
         // create new node
-        ListNode* new_node = new ListNode(hat);
+        ListNode *new_node = new ListNode(hat);
 
         // of the list is empty, insert the new node at the head
         if (head == nullptr) {
@@ -62,28 +63,29 @@ public:
         }
 
         // traverse the list and find the end of the list
-        ListNode* tail = head;
+        ListNode *tail = head;
         while (tail->next != head) {
             tail = tail->next;
         }
 
-        // insert the new node at the end of the list then attach it to the head.
+        // insert the new node at the end of the list then attach it to the
+        // head.
         tail->next = new_node;
         new_node->next = head;
     }
 
-    bool remove(const T& hat) {
+    bool remove(const T &hat) {
         if (head == nullptr) {
             return false;
         }
 
         // Start previous at the tail so removing the head works correctly.
-        ListNode* previous = head;
+        ListNode *previous = head;
         while (previous->next != head) {
             previous = previous->next;
         }
 
-        ListNode* current = head;
+        ListNode *current = head;
         // single entry list edge-case
         do {
             if (current->value == hat) {
@@ -116,22 +118,22 @@ public:
             return;
         }
 
-        const ListNode* current = head;
+        const ListNode *current = head;
         do {
             cout << current->value << endl;
             current = current->next;
         } while (current != head);
     }
 
-    // Counts each hat by incrementing a pointer while traversing through the list
-    // We save the head so we know when to stop by comparing to it
+    // Counts each hat by incrementing a pointer while traversing through the
+    // list We save the head so we know when to stop by comparing to it
     size_t count() const {
         if (head == nullptr) {
             return 0;
         }
 
         size_t item_count = 0;
-        const ListNode* current = head;
+        const ListNode *current = head;
         do {
             ++item_count;
             current = current->next;
@@ -140,23 +142,21 @@ public:
         return item_count;
     }
 
-    T& get(int index) {
-        ListNode* current = head;
+    T &get(int index) {
+        ListNode *current = head;
         for (int i = 0; i < index; i++) {
             current = current->next;
         }
         return current->value;
     }
-    
 
-    template <typename Predicate>
-    size_t search(Predicate is_match) const {
+    template <typename Predicate> size_t search(Predicate is_match) const {
         if (head == nullptr) {
             return 0;
         }
 
         size_t match_count = 0;
-        const ListNode* current = head;
+        const ListNode *current = head;
         do {
             if (is_match(current->value)) {
                 cout << current->value << endl;
